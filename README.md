@@ -12,8 +12,8 @@ It has been tested on StudioOne 6.
 
 TO USE THIS SCRIPT:
 1. copy the script into any folder you like
-2. after you have recorded onto an SD card from StudioLive mixer, copy the folder on the SD card that contains the recording session files (.capture,.scn, .cnfg files and the Audio folder contain all the .wav audio files) into the same folder as the CaptureConvert script is located.
-3. Run the script.  it will present a list of sub-directories.  Enter the sub-directory name that contains your SD card recording session.  The script will automatically extract all the metadata and update the .capture files (used by StudioOne DAW) to have all the proper track names, stereo track linkings and correct flags.  It will also convert any stereo-linked audio files (which the SD card records as separate mono audio files) into stereo audio files.  As the script progresses, it will print the names of all the file conversions.
+2. after you have recorded onto an SD card from StudioLive mixer, copy the folder on the SD card that contains the recording session files (.capture,.scn, .cnfg files and the Audio folder contain all the .wav audio files) into any folder (most logical place is to create a new song folder in the StudioOne/Songs folder for the new recording)
+3. Run the script.  A pop-up window allows you to select the folder that contains your SD card recording session.  The script will automatically extract all the metadata and update the .capture files (used by StudioOne DAW) to have all the proper track names, stereo track linkings and correct flags.  It will also convert any stereo-linked audio files (which the SD card records as separate mono audio files) into stereo audio files.  As the script progresses, it will print the names of all the file conversions.
 4. upon completion, you will have a Capture data set that is ready for direct import into StudioOne.  You can copy the entire folder into your StudioOne/Songs folder or run it from where it sits.  This converted Capture data set should be identical to the data set created by the PreSonus Capture app on Mac or Windows.
 
 A few more comments:
