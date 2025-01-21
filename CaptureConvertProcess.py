@@ -1,4 +1,4 @@
-# Last update: 2024-11-20 by SG
+# Last update: 2025-01-21 by SG
 
 # This program is used to convert the Capture files that are recorded onto the SD card in the StudioLive Series III mixer to match the format of the Capture files that are recorded using the Capture app on a computer.
 # This is done to facilite and simplify import into StudioOne and make it identical to importing recordings from a computer.
@@ -7,13 +7,15 @@
 
 # EXECUTION NOTE: this script was developed on MacOS and Python 3.11.2 .  It has not been tested on Windows.
 
-
+import sys
 import os
 import json
 import xml.etree.ElementTree as ET
-import sys
 import re
 import shutil
+import tkinter as tk
+from tkinter import filedialog
+from datetime import datetime  # Import the `datetime` class
 
 
 # **************  function to convert two mono .wav files to a stereo .wav file *******************
@@ -34,7 +36,7 @@ def Mono_to_Stereo_WAV(left_WAV,right_WAV,stereo_WAV):
     stereo_file = AudioSegment.from_mono_audiosegments(left_channel, right_channel)
     stereo_file.export(stereo_WAV, format="wav")
 
-# end of stereo file conversion   ************************************************************************************************
+# end of stereo file conversion function   ************************************************************************************************
 
 
 def main(): #***************************************************************************************
@@ -44,26 +46,28 @@ def main(): #*******************************************************************
     # Best way to do this is import the SD card capture folder into this directory.
     # After this program has successfully run, move the entire capture folder (including the Audio subfolder) to the StudioOne/Songs folder
 
+    # Query to get the folder with the Capture data to be converted:
     
-    # List only directories in the current directory
-    directories = [d for d in os.listdir() if os.path.isdir(d)]
-    print("Available folders to convert: \n")
-    for directory in directories: # Print each directory
-        print("    ",directory)
+    # Initialize Tkinter root window (it won't show up)
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    # Bring the root window DIALOG BOX to the front (this helps with dialog visibility)
+    root.lift()  # Raise the root window to the top
+    
+    print("Starting CaptureConvertProcess")
     print()
+    print("In the dialog box,  Select the folder that contains Capture data to convert: ")
+    Convert_folder=None    # initialize
+    # Open file dialog box showing the directory tree
+    while Convert_folder is None :
+        Convert_folder = filedialog.askdirectory(title="Select the folder that contains the Capture data to convert:")
+        # Check if a file was selected
+        if Convert_folder:
+            print(f"Folder selected:   {Convert_folder}")
 
-    # input the desired directory (i.e. folder) name.  If a non-existant name is entered, trigger the error exception.
-    try:
-        Convert_folder = input("Enter name of folder that contains Capture data to convert: ")
-        os.chdir(Convert_folder)
-    except FileNotFoundError:
-    # Handle the file not found error
-        print()
-        print("Folder  ",Convert_folder,"  does not exist. Please check the directory name.")
-        # sys.exit() #end the program
-        print("Restart the program and try again ...")
-        print()
-        os.execv(sys.executable, ['python'] + sys.argv)
+    # set working directory path to selected folder    
+    os.chdir(Convert_folder)
+    input_dir = os.path.abspath(Convert_folder)
 
     # open the new Capture directory, list the contents and check that there is an "Audio" folder
     print("Opening working directory:", os.getcwd())
@@ -111,11 +115,14 @@ def main(): #*******************************************************************
         if (fname+'.scn' in files) and (fname+'.cnfg' in files) and not (fname+'.capture.orig' in files) and not (fname+'.scene' in files):
           cap_list.append(fname)
 
-
-    #if cap_list is empty, there were not matching Convert files
+    # if cap_list is empty, there were no matching or un-processed capture files in this directory
     if len(cap_list) == 0:  
-        print("Cannot find a matching .capture, .scn, and .cnfg in the directory that hasn't already been converted (because",fname,".capture.orig and .scene are present).")
-        print("Please ensure this script and the .capture, .scn, .cnfg files are all in this same directory.")
+        print("Cannot find a matching .capture, .scn, and .cnfg in this directory that hasn't already been converted \n (because",fname,".capture.orig and .scene are present).")
+        print("The un-processed .capture, .scn, .cnfg files and Audio must all exist in this same directory.")
+        return()
+    # If more than one set of unprocessed capture files in directory.  Can't process because cannot determine which is associate withe Audio folder.  Exit the program
+    if len(cap_list)>1:
+        print("There is more than one unconverted set of capture files in this directory.  Cannot continue ...")
         return()
     print("File to convert: ",cap_list)
 
@@ -128,8 +135,7 @@ def main(): #*******************************************************************
 
     for fname in cap_list:      
         print("Opening  " + fname + ".capture, " + fname + ".scn and " + fname + ".cnfg.")
-        input("Press enter to continue.")
-        print()
+        input("Press enter to continue ... ")
 
         # open get the JSON data from the .scn and .cnfg files
         with open(fname+".scn","r") as f_scn, open(fname+".cnfg","r") as f_cnfg:
@@ -186,6 +192,21 @@ def main(): #*******************************************************************
 
             # set track name in .capture
             i.set('name', line_info[t_name]['username'])
+
+###     New code to test for stereo links ##################
+###     we only want to set the link flag in the .capture file if this track number is odd (first track in a linked stereo pair always has to be and odd trk # on StudioLive mixer) AND if the link flag for trk # +1 (the adjacent even track) is also 1 (indicating an actual stereo pair)
+#            if t_num%2 != 0:  # test for odd track num
+#                if line_info[t_name]['link'] == 1 and line_info[test trk_num +1 to see if the link flag is also set:
+#                   then set the link flags for this track.
+#               else:
+#                   clear the link flag for this track.
+#           else:       # this is an even track
+#               if link flag for this trk is set:
+#                   if link flag on previous trk # is set # indicating that this is the second track of the stereo pair
+#                       set the link flag for this track
+#               else:
+#                   clear the link flag for this track
+
 
             # add link flag to .capture (this flag is not used by StudioOne, but will be used below to identify stereo linked tracks)
             i.set('link', str(line_info[t_name]['link']))
@@ -358,6 +379,12 @@ def main(): #*******************************************************************
                 audio_event.set('url', new_url)
                 print("Renaming ",old_url," --> ",new_url)
                 os.rename(old_url,new_url)
+
+             # Set the file's modification date to today's date
+                now = datetime.now()
+                timestamp = now.timestamp()  # Convert to POSIX timestamp
+                os.utime(new_url, (timestamp, timestamp))
+                
                 audio_event.set('name',track_name+"("+clip_num+")") # sets the clip name in the AudioEvent
 
 #   Write the modified XML back to the capture file
