@@ -7,8 +7,8 @@ This is done to facilite and simplify import into StudioOne and make it identica
 There are numerous differences in the way that the tracks on the SD card are named and flagged in the SD card capture files.  These differences include:
 track names, .wav audio file names, URLs to audio file names in .capture, stereo track links, track display color and several other smaller metadata items.
 
-EXECUTION NOTE: this script was developed on MacOS and Python 3.11.2 .  It has not been tested on Windows as of 2024-11-20.
-It has been tested on StudioOne 6.
+EXECUTION NOTE: this script was developed on MacOS and Python 3.11.2 .  It has also been tested on Windows 11 and Python 3.12.7
+It has been tested on StudioOne 6 and 7.
 
 TO USE THIS SCRIPT:
 1. copy the script into any folder you like
@@ -20,3 +20,7 @@ A few more comments:
 - the script will create new .capture and .scene files for StudioOne.  the original (unprocessed files will remain in place as .capture.orig and .scn)
 - inside the Audio folder, a new folder called linked_mono_files may be created if you have one or more linked stereo tracks in your recording.  This sub-directory contains the original mono files (with relevent renames back the the associated track) and the new stereo .wav file will be in the Audio folder.  These linked mono files are not used and only exist as an archive of the orignal audio.
 - program termination (with a relevant error message) will occur if the required files are not present in the selected directory.
+
+- v1.2 update:  cleaned up program termination
+- v1.3.0 update: fixed a bug that didn't properly process the Main audio tracks if they were recorded
+- 
